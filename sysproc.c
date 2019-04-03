@@ -7,6 +7,8 @@
 #include "mmu.h"
 #include "proc.h"
 
+int count_procs(void);
+
 int
 sys_fork(void)
 {
@@ -40,6 +42,12 @@ int
 sys_getpid(void)
 {
   return myproc()->pid;
+}
+
+int
+sys_getprocs(void)
+{
+  return count_procs();
 }
 
 int
