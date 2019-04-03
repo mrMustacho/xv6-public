@@ -1,5 +1,5 @@
 lenguage: c
-script: make && ake fs.img
+script: make && make fs.img
 deploy:
   provider: releases
   api_key:
