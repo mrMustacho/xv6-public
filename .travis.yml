@@ -4,9 +4,7 @@ deploy:
   provider: releases
   api_key:
     secure: jLVAcrQuwgib1qWjjV21fsFXZtRJsIiS5hP296IHx5QQ4mcI38Tz6NkJzH0ILwW20ZS8RpKW5FXKOaoSbNQ9KnUb1rA5IopmYcqfQVl+ohNx43CdoMFQoNpNytOMlWTSz8wLlVlBOYEsOuL6+W6xVGye81lJWwtq3ijqlzgb9pVpbMZ3vifykhzQ0WoS9ZEXQAnqEfBpofsQwz1954P7t44MUjzqcAiELgSHFJZCKCCzLZf5263ERqtps1vHTpcsDm4T15dCft9RVSvaJ3d/kQOVo/xhIdE6+LhjRf4qDitfuirtCCp/gomUoy/6T+X1UkbrTBwvub37oPCJCS2OMwTkuKygx2CxdOMzmyt8qWtzmHnjuIhviS/RXqMuHu0lHOA7skHCmf40wYS12MhuNy6EM+jZ/Nf+Kt/Yld9vetyzbf3cMuywNif7QUHDac6ZmY4LVleTChGeFrg/BqsoNJ000nUXkyxA4fq5o0dXIqraVWDEl7s1T+2xjgdGaueSm3Q4afThX5d1iDnQGNMmBTMhxJWB+gt14BX7z8H9m/ATSkIHz6EXBTdhFGhMRMi8P3mpaO1EYj1JXd1R7OfA2CYrfVlBh4RHezboBYmGuLzMnN+QB0Q5N4xcvb88klfqnJD9APZsJ655bp8O/moJusR6Gm/CDtrAOqSwr7fHLsQ=
-  file: 
-    - fs.img
-    - xv6.img
+  file: fs.img && xv6.img
   skip_cleanup: true
   on:
     repo: mrMustacho/xv6-public
