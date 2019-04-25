@@ -20,6 +20,15 @@ extern void trapret(void);
 
 static void wakeup1(void *chan);
 
+//generates "random" number (from usertests.c), used in the lottery scheduler
+unsigned long randstate = 1;
+unsigned int
+rand(void)
+{
+  randstate = randstat * 1664525 + 1013904223;
+  return randstate;
+}
+
 void
 pinit(void)
 {
@@ -38,10 +47,10 @@ struct cpu*
 mycpu(void)
 {
   int apicid, i;
-  
+
   if(readeflags()&FL_IF)
     panic("mycpu called with interrupts enabled\n");
-  
+
   apicid = lapicid();
   // APIC IDs are not guaranteed to be contiguous. Maybe we should have
   // a reverse map, or reserve a register to store &cpus[i].
@@ -88,6 +97,7 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+  p->tickets = 10;
 
   release(&ptable.lock);
 
@@ -124,7 +134,7 @@ userinit(void)
   extern char _binary_initcode_start[], _binary_initcode_size[];
 
   p = allocproc();
-  
+
   initproc = p;
   if((p->pgdir = setupkvm()) == 0)
     panic("userinit: out of memory?");
@@ -275,7 +285,7 @@ wait(void)
   struct proc *p;
   int havekids, pid;
   struct proc *curproc = myproc();
-  
+
   acquire(&ptable.lock);
   for(;;){
     // Scan through table looking for exited children.
@@ -319,23 +329,56 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
+
+//Count the total number of tickets of the process that are ready to run
+int
+count_tickets(void)
+{
+  struct proc *p;
+  int num_tickets = 0;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->state == RUNNABLE)
+      num_tickets += p->tickets;
+  }
+  return num_tickets;
+}
+
 void
 scheduler(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
-  
+  int ticket_pos;
+  int num_tickets;
+  int winner;
+
   for(;;){
     // Enable interrupts on this processor.
     sti();
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
+    //Count number of tickets
+    num_tickets = count_tickets();
+    //If there is no process redy yet, then the scheduler won't run
+    if(num_tickets == 0){
+      release(&ptable.lock);
+      continue;
+    }
+    //restart the ticket position counter
+    ticket_pos = 0;
+    //generate the winner ticket
+    winner = rand()%num_tickets;
+    // Loop over process table looking for process to run. If found, breaks.
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
-
+      //Looks for the process with a range of tickets whish contain the winner
+      if(ticket_pos > winner || ticket_pos + p->tickets < winner){
+        ticket_pos += p->tickets;
+        continue;
+      }
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
@@ -349,6 +392,7 @@ scheduler(void)
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
+      break;
     }
     release(&ptable.lock);
 
@@ -418,7 +462,7 @@ void
 sleep(void *chan, struct spinlock *lk)
 {
   struct proc *p = myproc();
-  
+
   if(p == 0)
     panic("sleep");
 
@@ -523,7 +567,7 @@ procdump(void)
       state = states[p->state];
     else
       state = "???";
-    cprintf("%d %s %s", p->pid, state, p->name);
+    cprintf("%d %s %s %d", p->pid, state, p->name, p->tickets);
     if(p->state == SLEEPING){
       getcallerpcs((uint*)p->context->ebp+2, pc);
       for(i=0; i<10 && pc[i] != 0; i++)
@@ -531,4 +575,21 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+
+int
+count_procs(void)
+{
+	int procs = 0;
+	struct proc *p;
+
+  acquire(&ptable.lock);
+
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    if(p->state != UNUSED && p->state != ZOMBIE)
+      procs = procs + 1;
+
+  release(&ptable.lock);
+
+  return procs;
 }
