@@ -4,8 +4,8 @@
 
 int
 main(void) {
-	cprintf("\n-->Number of procs.: ");
-	cprintf("%d", getprocs());
-	cprintf("<--\n");
+	printf(1, "\n-->Number of procs.: ");
+	printf(1, "%d", getprocs());
+	printf(1, "<--\n");
 	exit();
 }
