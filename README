@@ -1,3 +1,16 @@
+Features:
+
+-numprocs syscall: Get the number of current processes. UNUSED and ZOMBIE excluded
+
+-Lottery Scheduler: Scheduler based on tickets.
+
+-v2p syscall: Get the physical address from a virtual address if it exist.
+  Input(command): v2p [HEX]	// Virtual Address in Hexadecimal.
+  Output: unsigned int		// Must be 8 characters long (without "0x").
+				// Can contain "0x" at the begining but the 
+				// remaining characters must be 8 too.
+
+-------------------------------------------------------------------------
 xv6 is a re-implementation of Dennis Ritchie's and Ken Thompson's Unix
 Version 6 (v6).  xv6 loosely follows the structure and style of v6,
 but is implemented for a modern x86-based multiprocessor using ANSI C.
