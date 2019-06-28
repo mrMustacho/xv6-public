@@ -49,6 +49,14 @@ sys_getprocs(void)
 }
 
 int
+sys_getpa(char* va)
+{
+  if(argstr(0, &va) < 0)
+    return 0;
+  return va2pa(va);
+}
+
+int
 sys_sbrk(void)
 {
   int addr;

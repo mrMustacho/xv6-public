@@ -593,3 +593,59 @@ count_procs(void)
 
   return procs;
 }
+
+static pte_t *
+walkpgdir(pde_t *pgdir, const void* va)
+{
+  pde_t *pde;
+  pte_t *pgtab;
+
+  pde = &pgdir[PDX(va)];
+  if(*pde & PTE_P){
+    pgtab = (pte_t*)P2V(PTE_ADDR(*pde));
+  } else {
+    return 0;
+  }
+  return &pgtab[PTX(va)];
+}
+
+int
+va2pa(const char *va)
+{
+  struct proc *p = myproc();
+
+  pde_t *pgdir;
+  pte_t *pte;
+  uint pa;
+
+  if((pgdir = p->pgdir) == 0){
+    cprintf("\n Couldn't find Page Directory\n");
+    return 0;
+  }
+  //Transforms hex(char*) into uint
+  uint vahex = 0;
+  while (*va) {
+      // get current character then increment
+      uint byte = *va++;
+      // transform hex character to the 4bit equivalent number, using the ascii table indexes
+      if (byte >= '0' && byte <= '9') byte = byte - '0';
+      else if (byte >= 'a' && byte <='f') byte = byte - 'a' + 10;
+      else if (byte >= 'A' && byte <='F') byte = byte - 'A' + 10;
+      // shift 4 to make space for new digit, and add the 4 bits of the new digit
+      vahex = (vahex << 4) | (byte & 0xF);
+  }
+
+  if((pte = walkpgdir(pgdir, (void *)vahex)) == 0){
+    cprintf("\n PTE should exist\n");
+    return 0;
+  }
+  if((*pte & PTE_P) == 0){
+    cprintf("\n PTE not present\n");
+    return 0;
+  }
+
+  pa = PTE_ADDR(*pte);
+
+  cprintf("\n Returned physical address [uint]: %d\n", pa);
+  return 1;
+}

@@ -121,6 +121,7 @@ int             wait(void);
 void            wakeup(void*);
 void            yield(void);
 int             count_procs(void);
+int             va2pa(const char*);
 
 // swtch.S
 void            swtch(struct context**, struct context*);
